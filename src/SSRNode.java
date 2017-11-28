@@ -3,7 +3,7 @@
  * @author HXD
  *
  */
-public class SSRNode {
+public class SSRNode implements Comparable<SSRNode>{
 	
 	/*
 	 * 根据情况,设定了部分属性默认值
@@ -212,6 +212,22 @@ public class SSRNode {
 
 	public void setUdp_over_tcp(boolean udp_over_tcp) {
 		this.udp_over_tcp = udp_over_tcp;
+	}
+
+
+	//自定义排序顺序
+	@Override
+	public int compareTo(SSRNode o) {
+		//去掉'ms'并转换为整数
+		int p1 = Integer.valueOf(this.avgPingTime.substring(0, 3));
+		int p2 = Integer.valueOf(o.getAvgPingTime().substring(0,3));
+		if(p1>p2) {
+			return 1;
+		}else if(p1<p2) {
+			return -1;
+		}else {
+			return 0;
+		}
 	}
 	
 	

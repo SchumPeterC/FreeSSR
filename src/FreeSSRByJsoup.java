@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -89,11 +90,11 @@ public class FreeSSRByJsoup {
 		long startTime = System.currentTimeMillis();
 		
 		
-		System.out.println("开始连接......");
+		System.out.println(">>>>>>>> 开始连接......");
 		
 		Document doc = Jsoup.connect("https://doub.bid/sszhfx/").get();
 		
-		System.out.println("连接成功......");
+		System.out.println("连接成功!");
 
 		//更新日期
 		Elements updateTimeEle = doc.select("span[style='color: #ff6464;']");
@@ -112,11 +113,11 @@ public class FreeSSRByJsoup {
 		String regex = "(ssr://){1}[a-zA-Z0-9_]{60,}";
 		List<String> SSRList = new ArrayList<>();
 		//提取SSR链接
-		System.out.println("获取SSR地址......");
+		System.out.println(">>>>>>>> 获取SSR地址......");
 		SSRList = getStringByRegex(regex, tableStr);
 		System.out.println("共获得"+ SSRList.size() +"个账号");
 		
-		System.out.println("对地址进行base64解码......");
+		System.out.println(">>>>>>>> 对地址进行base64解码......");
 		
 		String urlString = "";
 		String[] urlArray;
@@ -190,7 +191,7 @@ public class FreeSSRByJsoup {
 			}
 		
 		}
-		System.out.println("地址base64解码完成");	
+		System.out.println("base64解码完成");	
 		
 		//查询节点状态
 		List<Boolean> statusList = getNodeStatus();
@@ -198,19 +199,23 @@ public class FreeSSRByJsoup {
 			nodeList.get(i).setStatus(statusList.get(i));
 		}
 		
+	 	List<SSRNode> okNodeList = new ArrayList<>();
 	 	//进行ping操作
-	 	System.out.println("执行ping操作中......");
+	 	System.out.println(">>>>>>>> 执行ping操作中......");
 	 	for (SSRNode nl : nodeList) {
 			if(nl.isStatus()) {
+				System.out.println("ping " + nl.getServer() + "......");
 				String result = getPingTime(nl.getServer());
 				nl.setAvgPingTime(result);
+				okNodeList.add(nl);
 			}
 		}
-	 	
+	 	//排序
+	 	Collections.sort(okNodeList);
 	 	//信息显示
-		System.out.println("显示免费节点账号信息:");
+		System.out.println(okNodeList.size()+"个可用节点:");
 		int nodeCount = 0;
-		for (SSRNode sn : nodeList) {
+		for (SSRNode sn : okNodeList) {
 			System.out.println("======== 第"+ ++nodeCount +"个节点 ========");
 			System.out.println(sn.toString());
 		}
