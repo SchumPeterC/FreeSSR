@@ -60,14 +60,15 @@ public class SSRNode {
 
 	@Override
 	public String toString() {
-		return "节点信息: remarks=" + remarks 
-				+ ",  server=" + server 
-				+ ",  server_port=" + server_port 
-				+ ",  protocol=" + protocol 
-				+ ",  method="+ method 
-				+ ",  obfs=" + obfs 
-				+ ",  password=" + password 
-				+ ",  remarks_base64=" + remarks_base64;
+		return "节点信息: \n服务器名: " + remarks 
+				+ "\nIP地址: " + server 
+				+ "\n端口: " + server_port 
+				+ "\n协议: " + protocol 
+				+ "\n加密方式: "+ method 
+				+ "\n混淆: " + obfs 
+				+ "\n密码: " + password 
+				+ "\n备注: " + remarks_base64
+				+ "\n状态: " + status;
 	}
 
 	public String getServer() {

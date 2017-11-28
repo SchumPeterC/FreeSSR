@@ -3,6 +3,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +35,27 @@ public class FreeSSRByJsoup {
 		return list;
 	}
 	
-	
+	/*
+	 * 获取节点可用状态
+	 */
+	public static List<Boolean> getNodeStatus() throws IOException {
+		//请求地址 http://sstz.toyoo.ml/json/stats.json
+		Document doc = Jsoup.connect("http://sstz.toyoo.ml/json/stats.json")
+				.ignoreContentType(true)
+				.get();
+		String json  = doc.select("body").text();
+		
+		//直接用正则表达式取状态数据
+		List<String> statusList = new ArrayList<>();
+		statusList = getStringByRegex("(\"status\": ){1}[a-z]*", json);
+		//转换为布尔值
+		List<Boolean> status = new ArrayList<>();
+		for (String string : statusList) {
+			string = string.substring(10);
+			status.add(Boolean.valueOf(string));
+		}
+		return status;
+	}
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -109,7 +130,7 @@ public class FreeSSRByJsoup {
 				ssrNode.setPassword(pdStr);
 				//remarks
 				String remStr = getStringByRegex("(=){1}[a-zA-Z0-9-]*", urlArray[10]).get(0);
-				remStr.substring(1);
+				remStr = remStr.substring(1);
 				ssrNode.setRemarks_base64(remStr);
 				nodeList.add(ssrNode);
 			}else {
@@ -133,7 +154,7 @@ public class FreeSSRByJsoup {
 				ssrNode.setPassword(pdStr);
 				//remarks
 				String remStr = getStringByRegex("(=){1}[a-zA-Z0-9-]*", urlArray[5]).get(0);
-				remStr.substring(1);
+				remStr = remStr.substring(1);
 				ssrNode.setRemarks_base64(remStr);
 				nodeList.add(ssrNode);
 			}
@@ -141,6 +162,13 @@ public class FreeSSRByJsoup {
 		}
 		System.out.println("地址base64解码完成");	
 		
+		//查询节点状态
+		List<Boolean> statusList = getNodeStatus();
+	 	for (int i = 0; i < statusList.size();i++) {
+			nodeList.get(i).setStatus(statusList.get(i));
+		}
+		
+	 	//信息显示
 		System.out.println("显示免费节点账号信息:");
 		int nodeCount = 0;
 		for (SSRNode sn : nodeList) {
@@ -148,6 +176,15 @@ public class FreeSSRByJsoup {
 			System.out.println(sn.toString());
 		}
 		
+		//退出
+		System.out.println("\n按回车键退出");
+		Scanner input = new Scanner(System.in);
+		String isExit = input.nextLine();
+		if(isExit.length() == 0) {
+			//关闭当前进程
+			input.close();
+			System.exit(0);
+		}
 	}
 }
 
