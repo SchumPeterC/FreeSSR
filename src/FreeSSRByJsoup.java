@@ -43,70 +43,111 @@ public class FreeSSRByJsoup {
 		Document doc = Jsoup.connect("https://doub.bid/sszhfx/").get();
 		
 		System.out.println("连接成功......");
-//		String page = doc.html();
-//		System.out.println(page);
+
 		//更新日期
 		Elements updateTimeEle = doc.select("span[style='color: #ff6464;']");
 		String updateTime = updateTimeEle.eq(1).text();
-		//账号列表
-		Elements table = doc.select("table[width=100%] tr");
-		//账号数,减去表头
-		String test2 = table.toString();
-		//System.out.println(test2);
+		System.out.println("更新日期: "+updateTime);
+		
+		//账号列表元素
+		Elements tableEle = doc.select("table[width=100%]");
+		
+		//System.out.println(tableEle.html());
+		
+		//将元素转换字符串
+		String tableStr = tableEle.toString();
 		
 		//正则表达式匹配SSR链接规则
 		String regex = "(ssr://){1}[a-zA-Z0-9_]{60,}";
 		List<String> SSRList = new ArrayList<>();
-		
+		//提取SSR链接
 		System.out.println("获取SSR地址......");
-		
-		SSRList = getStringByRegex(regex, test2);
-		
+		SSRList = getStringByRegex(regex, tableStr);
 		System.out.println("共获得"+ SSRList.size() +"个账号");
 		
 		System.out.println("对地址进行base64解码......");
 		
-		List<String> passwordList = new ArrayList<>();
-		for (String string : SSRList) {
+		String urlString = "";
+		String[] urlArray;
+		//存储节点
+		List<SSRNode> nodeList = new ArrayList<>();
+		//获取节点名
+		for(int i = 1;i<tableEle.select("tr").size();i++) {
+			String serverName = tableEle.select("tr").get(i).select("td").get(0).text();
 			//去除ssr://
-			string = string.substring(6);
+			urlString = SSRList.get(i-1);
+			urlString = urlString.substring(6);
 			//BASE64解码
-			string = base64Decode(string);
-			//提取密码字符串
-			String regex2 = "(auth:){1}[a-zA-Z0-9]*";
-			passwordList.add(getStringByRegex(regex2, string).toString());
-			
-			System.out.println(string);
+			urlString = base64Decode(urlString);
+			urlArray = urlString.split(":");
+			//SSRNode节点
+			SSRNode ssrNode = new SSRNode();
+			//如果数组长度为11的IP地址是IPV6,长度为6的是IPV4
+			if(urlArray.length > 6) {
+				String ip = urlArray[0] 
+							+ ":" + urlArray[1] 
+							+ ":" +urlArray[2] 
+							+ ":" + urlArray[3]
+							+ ":" + urlArray[4]
+							+ ":" + urlArray[5];
+				//备注
+				ssrNode.setRemarks(serverName);
+				//ip
+				ssrNode.setServer(ip);
+				//端口
+				ssrNode.setServer_port(Integer.valueOf(urlArray[6]));
+				//协议
+				ssrNode.setProtocol(urlArray[7]);
+				//加密方式
+				ssrNode.setMethod(urlArray[8]);
+				//混淆
+				ssrNode.setObfs(urlArray[9]);
+				//密码
+				String pdStr = getStringByRegex("[a-zA-Z0-9]*", urlArray[10]).get(0);
+				//对密码进行base64二次解码
+				pdStr = base64Decode(pdStr);
+				ssrNode.setPassword(pdStr);
+				//remarks
+				String remStr = getStringByRegex("(=){1}[a-zA-Z0-9-]*", urlArray[10]).get(0);
+				remStr.substring(1);
+				ssrNode.setRemarks_base64(remStr);
+				nodeList.add(ssrNode);
+			}else {
+				String ip = urlArray[0];
+				//备注
+				ssrNode.setRemarks(serverName);
+				//ip
+				ssrNode.setServer(ip);
+				//端口
+				ssrNode.setServer_port(Integer.valueOf(urlArray[1]));
+				//协议
+				ssrNode.setProtocol(urlArray[2]);
+				//加密方式
+				ssrNode.setMethod(urlArray[3]);
+				//混淆
+				ssrNode.setObfs(urlArray[4]);
+				//密码
+				String pdStr = getStringByRegex("[a-zA-Z0-9]*", urlArray[5]).get(0);
+				//对密码进行base64二次解码
+				pdStr = base64Decode(pdStr);
+				ssrNode.setPassword(pdStr);
+				//remarks
+				String remStr = getStringByRegex("(=){1}[a-zA-Z0-9-]*", urlArray[5]).get(0);
+				remStr.substring(1);
+				ssrNode.setRemarks_base64(remStr);
+				nodeList.add(ssrNode);
+			}
+		
 		}
-		System.out.println("地址base64解码完成");
+		System.out.println("地址base64解码完成");	
 		
-//		String res = "MTA0LjE2MC4xNzMuMTQxOjM0NDI6YXV0aF9hZXMxMjhfc2hhMTpjaGFjaGEyMDp0bHMxLjJfdGlja2V0X2F1dGg6Wkc5MVlpNXBieTl6YzNwb1puZ3ZLbVJ2ZFdJdVltbGtMM056ZW1obWVDOHFNelEwTWcvP3JlbWFya3M9NXB5czZMU201WS0zNXAybDZJZXFPbVJ2ZFdJdWFXOHZjM042YUdaNEwtbVZuT1dEai1XZm4tV1FqVHBrYjNWaUxtSnBaQzl6YzNwb1puZ3Y";
-//		byte[] asBytes2 = Base64.getUrlDecoder().decode(res);  
-//		res = new String(asBytes2,"UTF-8");
-//		System.out.println(res);
-		
-//		int accountCount = table.size()-1;
-//		String test = table.select(".dl1").html();
-//		System.out.println(test);
-		//正则表达式1 (ssr://){1}[a-zA-Z0-9_]*("){1}
-		//正则表达式2 (ssr://){1}[a-zA-Z0-9_]{60,}
-//		List<String> accoutList = new ArrayList<>();
-//		for(int i = 0; i < accountCount + 1; i++) {
-//			Element  tr = accountEle.get(i);
-//			String[] account = null;
-//			for(int j=0;j<6;j++) {
-//				account[j] = tr.child(j).text();
-//			}
-//			account[6] = tr.child(6).select("a[href~=http://doub.pw/qr/qr.php?text=*]").toString();
-//			System.out.println(account.toString());
-//		}
-//		for (Node i : test) {
-//			System.out.println(i.text());
-//		}
-		
-		//System.out.println("更新日期: "+updateTime);
-		//System.out.println("共有"+accountCount+"个账号");
-		//System.out.println("账号列表:\n" + account);
+		System.out.println("显示免费节点账号信息:");
+		int nodeCount = 0;
+		for (SSRNode sn : nodeList) {
+			System.out.println("======== 第"+ ++nodeCount +"个节点 ========");
+			System.out.println(sn.toString());
+		}
 		
 	}
 }
+
