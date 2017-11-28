@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -57,7 +59,35 @@ public class FreeSSRByJsoup {
 		return status;
 	}
 	
+	/*
+	 * 执行ping操作,判断节点是否可用,及延时时间
+	 */
+	public static String getPingTime(String ip) throws IOException {
+		//执行ping命令
+		Process p = Runtime.getRuntime().exec("ping "+ ip);
+		//接受返回的数据
+		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream(),"GBK"));
+		String line;
+		StringBuilder sb = new StringBuilder();
+		while((line=br.readLine())!=null) {
+			//System.out.println(line);
+			sb.append(line);
+		}
+		//使用正则表达式ping结果
+		List<String> result = FreeSSRByJsoup.getStringByRegex("[0-9]*ms$", sb.toString());
+		//长度为零,及结果中不包含"平均 = XXXms"的即ping不通
+		if(result.size()==0) {
+			return "请求超时";
+		}else {
+			return result.get(0);
+		}
+	}
+	
 	public static void main(String[] args) throws IOException {
+		
+		//开始时间
+		long startTime = System.currentTimeMillis();
+		
 		
 		System.out.println("开始连接......");
 		
@@ -168,6 +198,15 @@ public class FreeSSRByJsoup {
 			nodeList.get(i).setStatus(statusList.get(i));
 		}
 		
+	 	//进行ping操作
+	 	System.out.println("执行ping操作中......");
+	 	for (SSRNode nl : nodeList) {
+			if(nl.isStatus()) {
+				String result = getPingTime(nl.getServer());
+				nl.setAvgPingTime(result);
+			}
+		}
+	 	
 	 	//信息显示
 		System.out.println("显示免费节点账号信息:");
 		int nodeCount = 0;
@@ -175,6 +214,11 @@ public class FreeSSRByJsoup {
 			System.out.println("======== 第"+ ++nodeCount +"个节点 ========");
 			System.out.println(sn.toString());
 		}
+		
+		System.out.println();
+		//结束时间
+		long endTime = System.currentTimeMillis();
+		System.out.println("耗时:"+ (endTime-startTime)*1.0/1000 + " 秒");
 		
 		//退出
 		System.out.println("\n按回车键退出");

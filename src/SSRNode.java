@@ -56,7 +56,7 @@ public class SSRNode {
 	
 	boolean udp_over_tcp = false;
 	
-	
+	String avgPingTime = "不可用";
 
 	@Override
 	public String toString() {
@@ -68,8 +68,23 @@ public class SSRNode {
 				+ "\n混淆: " + obfs 
 				+ "\n密码: " + password 
 				+ "\n备注: " + remarks_base64
-				+ "\n状态: " + status;
+				+ "\n状态: " + status
+				+ "\n平均延迟: " + avgPingTime;
 	}
+	
+	
+
+	public String getAvgPingTime() {
+		return avgPingTime;
+	}
+
+
+
+	public void setAvgPingTime(String avgPingTime) {
+		this.avgPingTime = avgPingTime;
+	}
+
+
 
 	public String getServer() {
 		return server;
