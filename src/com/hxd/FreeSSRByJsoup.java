@@ -1,4 +1,8 @@
+package com.hxd;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -13,6 +17,11 @@ import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+
+import com.google.gson.Gson;
+import com.hxd.bean.SSRNode;
+import com.hxd.gson.GUIConfig;
+import com.hxd.gson.Server;
 
 public class FreeSSRByJsoup {
 	
@@ -83,6 +92,59 @@ public class FreeSSRByJsoup {
 			return result.get(0);
 		}
 	}
+	
+	/*
+	 * 读取json配置文件
+	 * 参数:文件路径
+	 */
+	public static String readJSON(String filePath) throws IOException {
+		//文件编码
+		String encoding = "UTF-8";
+		//指定文件地址
+	    File file = new File(filePath);
+	    //存储文件内容
+	    StringBuilder sb  = new StringBuilder();
+	    //判断文件是否存在
+	    if (file.isFile() && file.exists()) { 
+	        InputStreamReader read = new InputStreamReader(
+	                new FileInputStream(file), encoding);
+	        BufferedReader bufferedReader = new BufferedReader(read);
+	        String lineTxt = null;
+	        while ((lineTxt = bufferedReader.readLine()) != null) {
+	               sb.append(lineTxt+"\n");
+	         }
+	        read.close();
+	    } else {
+	        System.out.println("找不到指定的文件");
+	    }
+	    String result = sb.toString();
+	    return result;
+	} 
+	
+	/*
+	 * 将更新的内容写入json配置文件
+	 */
+	public static boolean writeJSON(String result,String filePath) {
+		File file = new File(filePath);
+	    FileWriter fw = null;
+		try {
+			fw = new FileWriter(file);
+			fw.write(result);
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}finally {
+			try {
+				fw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -210,15 +272,52 @@ public class FreeSSRByJsoup {
 				okNodeList.add(nl);
 			}
 		}
-	 	//排序
+	 	//根据延时进行排序
 	 	Collections.sort(okNodeList);
+	 	
+	 	//配置文件路径
+	 	String filePath = "C:\\GreenSoftware\\ShadowsocksR-4.7.0\\gui-config.json";
+	 	//读取配置文件
+	 	String result = readJSON(filePath);
+	 	//利用GSON解析json
+	 	Gson gson = new Gson();
+	 	GUIConfig guiConfig = gson.fromJson(result, GUIConfig.class);
+	 	//服务器列表
+	 	List<Server> configList = new ArrayList<>();
 	 	//信息显示
 		System.out.println(okNodeList.size()+"个可用节点:");
 		int nodeCount = 0;
 		for (SSRNode sn : okNodeList) {
 			System.out.println("======== 第"+ ++nodeCount +"个节点 ========");
 			System.out.println(sn.toString());
+			//服务器
+		 	Server config = new Server();
+			//设置 备注  ip  端口  协议  加密方式  混淆  密码  remarks_base 分组
+			config.setServer(sn.getServer());
+			config.setServer_port(sn.getServer_port());
+			config.setProtocol(sn.getProtocol());
+			config.setMethod(sn.getMethod());
+			config.setObfs(sn.getObfs());
+			config.setPassword(sn.getPassword());
+			config.setRemarks_base64("");
+			config.setGroup(sn.getRemarks());
+			//用平均延时做备注
+			config.setRemarks(sn.getAvgPingTime());
+			configList.add(config);
 		}
+		//更新服务器列表
+		guiConfig.setConfigs(configList);
+		//将更新后的信息装换为json
+		String updateConfig = gson.toJson(guiConfig);
+		
+		//System.out.println(updateConfig);
+		
+		System.out.println(">>>>>>>> 更新配置文件......");
+		
+		//写入配置文件
+		writeJSON(updateConfig, filePath);
+		
+		System.out.println("完成更新");
 		
 		System.out.println();
 		//结束时间

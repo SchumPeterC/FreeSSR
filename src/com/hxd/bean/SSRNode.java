@@ -1,3 +1,4 @@
+package com.hxd.bean;
 /**
  * SSR节点类
  * @author HXD
