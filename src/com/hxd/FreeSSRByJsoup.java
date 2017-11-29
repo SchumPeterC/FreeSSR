@@ -1,10 +1,14 @@
 package com.hxd;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -125,24 +129,26 @@ public class FreeSSRByJsoup {
 	 * 将更新的内容写入json配置文件
 	 */
 	public static boolean writeJSON(String result,String filePath) {
-		File file = new File(filePath);
-	    FileWriter fw = null;
-		try {
-			fw = new FileWriter(file);
-			fw.write(result);
-			return true;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}finally {
+			File file = new File(filePath);
+			BufferedWriter writer = null;
 			try {
-				fw.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				writer = new BufferedWriter(new OutputStreamWriter(  
+				        new FileOutputStream(file), "UTF-8"));
+					writer.write(result);
+			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}finally {
+				try {
+					writer.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}  				
 			}
-		}
+		    return true;
 	}
 	
 	/*启动ShadowsocksR-dotnet4.0.exe

@@ -12,7 +12,7 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.hxd.gson.GUIConfig;
 /**
- * 测试文件
+ * 测试文件,用来测试小功能部分
  * @author HXD
  *
  */
