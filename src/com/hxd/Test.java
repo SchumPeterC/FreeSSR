@@ -76,18 +76,71 @@ public class Test {
 	    return result;
 	} 
 	
+	/*启动ShadowsocksR-dotnet4.0.exe
+	 * 判断SSR程序是否运行,运行就杀掉进程
+	 * cmd命令
+	 * 杀掉程序:taskkill /f /im ShadowsocksR-dotnet4.0.exe
+	 * 判断程序是否运行:tasklist|find /i "ShadowsocksR-dotnet4.0.exe"
+	 * 启动程序:C:\GreenSoftware\ShadowsocksR-4.7.0\ShadowsocksR-dotnet4.0.exe
+	 */
+	public static void startSSR() throws IOException {
+		//启动命令
+		String startCommand = "C:\\GreenSoftware\\ShadowsocksR-4.7.0\\ShadowsocksR-dotnet4.0.exe";
+		//判断,查找有没有ssr进程,不加"cmd /c"会报错
+		String findCommand = "cmd /c tasklist|findstr /i \"ShadowsocksR-dotnet4.0\"";
+		//杀死进程命令
+		String killCommand = "taskkill /f /im ShadowsocksR-dotnet4.0.exe";
+		
+		Runtime run = Runtime.getRuntime();
+		//先判断SSR是否已运行
+		Process process = run.exec(findCommand);
+		//接受返回信息
+		BufferedReader  bufferedReader = new BufferedReader  
+	            (new InputStreamReader(process.getInputStream()));
+		String line = null;
+		//存储返回信息
+		StringBuilder sb = new StringBuilder();
+		 while ((line = bufferedReader.readLine()) != null) {  
+	            sb.append(line + "\n");  
+		 }
+		 System.out.println(sb);
+		 //从反馈的信息中进行判断,包含"ShadowsocksR-dotnet4.0"代表SSR程序已启动
+		 String regex = "ShadowsocksR-dotnet4.0";
+		 int count = FreeSSRByJsoup.getStringByRegex(regex, sb.toString()).size();
+		 if(count == 2) {
+			 //重启,先杀再启
+			 System.out.println("SSR客户端已启动,将进行重启");
+			 run.exec(killCommand);
+			 //延时,等待程序退出再重新启动
+			 try {
+				 System.out.println("请稍候......");
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			 run.exec(startCommand);
+			 System.out.println("重启完成");
+		 }else {
+			 //否则直接启动SSR客户端
+			 System.out.println("启动SSR客户端");
+			 run.exec(startCommand);
+		 }
+	}
+	
 	public static void main(String[] args) throws IOException {
 		//System.out.println(getPingTime("45.35.52.194"));
 		//System.out.println(getPingTime("192.168.1.1"));
-		String result = readJSON();
-		Gson gson = new Gson();
-		GUIConfig  gc = gson.fromJson(result, GUIConfig.class);
-		gc.getConfigs().get(0).setRemarks("测试");
-		gc.getConfigs().get(0).setGroup("美国一");
-		System.out.println(gc.getConfigs().get(0).getRemarks());
-		String changedStr = gson.toJson(gc);
-		System.out.println("修改");
-		System.out.println(changedStr);
+//		String result = readJSON();
+//		Gson gson = new Gson();
+//		GUIConfig  gc = gson.fromJson(result, GUIConfig.class);
+//		gc.getConfigs().get(0).setRemarks("测试");
+//		gc.getConfigs().get(0).setGroup("美国一");
+//		System.out.println(gc.getConfigs().get(0).getRemarks());
+//		String changedStr = gson.toJson(gc);
+//		System.out.println("修改");
+//		System.out.println(changedStr);
+		startSSR();
 	}
 }
 	
