@@ -2,17 +2,15 @@ package com.hxd;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.hxd.gson.GUIConfig;
 /**
- * 测试文件,用来测试小功能部分
+ * 测试类,用来测试小功能部分
  * @author HXD
  *
  */
@@ -32,7 +30,7 @@ public class Test {
 			sb.append(line+"\n");
 		}
 		//使用正则表达式ping结果
-		List<String> result = FreeSSRByJsoup.getStringByRegex("[0-9]*ms$", sb.toString());
+		List<String> result = FreeSSR.getStringByRegex("[0-9]*ms$", sb.toString());
 		//长度为零,及结果中不包含"平均 = XXXms"的即ping不通
 		if(result.size()==0) {
 			return "请求超时";
@@ -106,7 +104,7 @@ public class Test {
 		 System.out.println(sb);
 		 //从反馈的信息中进行判断,包含"ShadowsocksR-dotnet4.0"代表SSR程序已启动
 		 String regex = "ShadowsocksR-dotnet4.0";
-		 int count = FreeSSRByJsoup.getStringByRegex(regex, sb.toString()).size();
+		 int count = FreeSSR.getStringByRegex(regex, sb.toString()).size();
 		 if(count == 2) {
 			 //重启,先杀再启
 			 System.out.println("SSR客户端已启动,将进行重启");

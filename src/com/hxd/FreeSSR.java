@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -27,7 +26,20 @@ import com.hxd.bean.SSRNode;
 import com.hxd.gson.GUIConfig;
 import com.hxd.gson.Server;
 
-public class FreeSSRByJsoup {
+public class FreeSSR {
+	
+	//1. 爬取地址/逗比根据地免费账号地址
+	static String SourceUrl = "https://doub.bid/sszhfx/";
+	
+	//2. SSR可执行程序所在位置,可执行程序名称必须是ShadowsocksR-dotnet4.0.exe
+	static String InstallFolder = "C:\\GreenSoftware\\ShadowsocksR-4.7.0\\ShadowsocksR-dotnet4.0.exe";
+	
+	//3. SSR的json配置文件路径
+ 	static String filePath = "C:\\GreenSoftware\\ShadowsocksR-4.7.0\\gui-config.json";
+	
+ 	//4. 节点状态json地址
+	static String NodeStatusUrl = "http://sstz.toyoo.ml/json/stats.json";
+	
 	
 	/*
 	 * base64解码
@@ -55,8 +67,7 @@ public class FreeSSRByJsoup {
 	 * 获取节点可用状态
 	 */
 	public static List<Boolean> getNodeStatus() throws IOException {
-		//请求地址 http://sstz.toyoo.ml/json/stats.json
-		Document doc = Jsoup.connect("http://sstz.toyoo.ml/json/stats.json")
+		Document doc = Jsoup.connect(NodeStatusUrl)
 				.ignoreContentType(true)
 				.get();
 		String json  = doc.select("body").text();
@@ -88,7 +99,7 @@ public class FreeSSRByJsoup {
 			sb.append(line);
 		}
 		//使用正则表达式ping结果
-		List<String> result = FreeSSRByJsoup.getStringByRegex("[0-9]*ms$", sb.toString());
+		List<String> result = FreeSSR.getStringByRegex("[0-9]*ms$", sb.toString());
 		//长度为零,及结果中不包含"平均 = XXXms"的即ping不通
 		if(result.size()==0) {
 			return "请求超时";
@@ -160,7 +171,7 @@ public class FreeSSRByJsoup {
 	 */
 	public static void startSSR() throws IOException {
 		//启动命令
-		String startCommand = "C:\\GreenSoftware\\ShadowsocksR-4.7.0\\ShadowsocksR-dotnet4.0.exe";
+		String startCommand = InstallFolder;
 		//判断,查找有没有ssr进程,不加"cmd /c"会报错
 		String findCommand = "cmd /c tasklist|findstr /i \"ShadowsocksR-dotnet4.0\"";
 		//杀死进程命令
@@ -181,7 +192,7 @@ public class FreeSSRByJsoup {
 		 //System.out.println(sb);
 		 //从反馈的信息中进行判断,包含"ShadowsocksR-dotnet4.0"代表SSR程序已启动
 		 String regex = "ShadowsocksR-dotnet4.0";
-		 int count = FreeSSRByJsoup.getStringByRegex(regex, sb.toString()).size();
+		 int count = FreeSSR.getStringByRegex(regex, sb.toString()).size();
 		 if(count == 2) {
 			 //重启,先杀再启
 			 System.out.println("SSR客户端已启动,将进行重启");
@@ -203,6 +214,21 @@ public class FreeSSRByJsoup {
 		 }
 	}
 	
+	/*
+	 * 退出程序
+	 */
+	public static void exit() {
+		//退出
+		System.out.println("\n按回车键退出");
+		Scanner input = new Scanner(System.in);
+		String isExit = input.nextLine();
+		if(isExit.length() == 0) {
+			//关闭当前进程
+			input.close();
+			System.exit(0);
+			}
+	}
+	
 	public static void main(String[] args) throws IOException {
 		
 		//开始时间
@@ -211,7 +237,7 @@ public class FreeSSRByJsoup {
 		
 		System.out.println(">>>>>>>> 开始连接......");
 		
-		Document doc = Jsoup.connect("https://doub.bid/sszhfx/").get();
+		Document doc = Jsoup.connect(SourceUrl).get();
 		
 		System.out.println("连接成功!");
 
@@ -235,6 +261,12 @@ public class FreeSSRByJsoup {
 		System.out.println(">>>>>>>> 获取SSR地址......");
 		SSRList = getStringByRegex(regex, tableStr);
 		System.out.println("共获得"+ SSRList.size() +"个账号");
+		//如果没有可用节点,直接停止程序
+		if(SSRList.size() == 0) {
+			System.out.println("***** 无可用节点,停止程序! *****");
+			exit();
+		}
+		
 		
 		System.out.println(">>>>>>>> 对地址进行base64解码......");
 		
@@ -332,8 +364,6 @@ public class FreeSSRByJsoup {
 	 	//根据延时进行排序
 	 	Collections.sort(okNodeList);
 	 	
-	 	//配置文件路径
-	 	String filePath = "C:\\GreenSoftware\\ShadowsocksR-4.7.0\\gui-config.json";
 	 	//读取配置文件
 	 	String result = readJSON(filePath);
 	 	//利用GSON解析json
@@ -384,15 +414,8 @@ public class FreeSSRByJsoup {
 		long endTime = System.currentTimeMillis();
 		System.out.println("耗时:"+ (endTime-startTime)*1.0/1000 + " 秒");
 		
-		//退出
-		System.out.println("\n按回车键退出");
-		Scanner input = new Scanner(System.in);
-		String isExit = input.nextLine();
-		if(isExit.length() == 0) {
-			//关闭当前进程
-			input.close();
-			System.exit(0);
-		}
+		//退出程序
+		exit();
 	}
 }
 
