@@ -255,7 +255,7 @@ public class FreeSSR {
 		String tableStr = tableEle.toString();
 		
 		//正则表达式匹配SSR链接规则
-		String regex = "(ssr://){1}[a-zA-Z0-9_]{60,}";
+		String regex = "(ssr://){1}[a-zA-Z0-9_!]{60,}";
 		List<String> SSRList = new ArrayList<>();
 		//提取SSR链接
 		System.out.println(">>>>>>>> 获取SSR地址......");
@@ -280,6 +280,8 @@ public class FreeSSR {
 			//去除ssr://
 			urlString = SSRList.get(i-1);
 			urlString = urlString.substring(6);
+			//网页源代码的ssr连接有个感叹号,点进去又没有感叹号???有感叹号解码就会报错......
+			urlString = urlString.replaceAll("!", "");
 			//BASE64解码
 			urlString = base64Decode(urlString);
 			urlArray = urlString.split(":");
