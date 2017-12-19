@@ -22,14 +22,14 @@ FreeSSR
 
 ## 运行效果图
 
-1. 失败
-![效果图1](image/效果图1.png)
-2. 成功1
-![效果图2](image/效果图2.png)
-3. 成功2
-![效果图3](image/效果图3.png)
-4. SSR客户端
-![效果图4](image/效果图4.png)
+1. 失败  <br>
+![效果图1](image/效果图1.png)    <br>
+2. 成功1    <br>
+![效果图2](image/效果图2.png)    <br>
+3. 成功2    <br>
+![效果图3](image/效果图3.png)    <br>
+4. SSR客户端    <br>
+![效果图4](image/效果图4.png)    <br>
 
 
 
