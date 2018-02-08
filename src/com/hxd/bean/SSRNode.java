@@ -18,11 +18,11 @@ public class SSRNode implements Comparable<SSRNode>{
 	//端口
 	int server_port;
 	//协议
-	String protocol = "auth_aes128_sha1";
+	String protocol = "origin";
 	//加密方式
-	String method = "chacha20";
+	String method;
 	//混淆
-	String obfs = "tls1.2_ticket_auth";
+	String obfs = "plain";
 	//密码
 	String password;
 	

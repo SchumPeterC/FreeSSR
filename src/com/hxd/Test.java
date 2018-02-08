@@ -9,6 +9,9 @@ import java.io.InputStreamReader;
 
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 /**
  * 测试类,用来测试小功能部分
  * @author HXD
@@ -126,6 +129,18 @@ public class Test {
 		 }
 	}
 	
+	public static void freessSite() throws IOException {
+		//获取当前时间戳
+		String time = String.valueOf(System.currentTimeMillis());
+		//以时间戳为请求参数
+		String urlStr = "https://free-ss.site/ss.php?_=" + time;
+		Document doc = Jsoup.connect(urlStr)
+				.ignoreContentType(true)
+				.get();
+		String json = doc.select("body").text();
+		System.out.println(json);
+	}
+	
 	public static void main(String[] args) throws IOException {
 		//System.out.println(getPingTime("45.35.52.194"));
 		//System.out.println(getPingTime("192.168.1.1"));
@@ -138,7 +153,8 @@ public class Test {
 //		String changedStr = gson.toJson(gc);
 //		System.out.println("修改");
 //		System.out.println(changedStr);
-		startSSR();
+//		startSSR();
+		freessSite();
 	}
 }
 	

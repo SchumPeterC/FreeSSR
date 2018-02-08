@@ -254,13 +254,27 @@ public class FreeSSR {
 		//将元素转换字符串
 		String tableStr = tableEle.toString();
 		
-		//正则表达式匹配SSR链接规则
-		String regex = "(ssr://){1}[a-zA-Z0-9_!]{60,}";
+		//账号列表页面的连接多了几位无用的字符,导致解码的时候出错,是为了防爬????
+		//提取连接,到二级页面去获取正确的ssr连接
+		String regexLink = "(http://doub.pw/qr/qr.php\\?text=ssr://){1}[a-zA-Z0-9_!]{60,}";
+		List<String> linkList = new ArrayList<>();
 		List<String> SSRList = new ArrayList<>();
-		//提取SSR链接
+		linkList = getStringByRegex(regexLink, tableStr);
+		
 		System.out.println(">>>>>>>> 获取SSR地址......");
-		SSRList = getStringByRegex(regex, tableStr);
-		System.out.println("共获得"+ SSRList.size() +"个账号");
+		
+		for (String string : linkList) {
+			//测试输出
+			//System.out.println("二级页面连接:"+string);
+			Document html = Jsoup.connect(string).get();
+			Elements ssrEle= html.select("#biao1");
+			//测试输出
+			System.out.println(ssrEle.text());
+			SSRList.add(ssrEle.text());
+		}
+		//节点数
+		int ssrNodeNum = SSRList.size();
+		System.out.println("共获得"+ ssrNodeNum +"个账号");
 		//如果没有可用节点,直接停止程序
 		if(SSRList.size() == 0) {
 			System.out.println("***** 无可用节点,停止程序! *****");
@@ -275,45 +289,53 @@ public class FreeSSR {
 		//存储节点
 		List<SSRNode> nodeList = new ArrayList<>();
 		//获取节点名
-		for(int i = 1;i<tableEle.select("tr").size();i++) {
-			String serverName = tableEle.select("tr").get(i).select("td").get(0).text();
+		int trNum = tableEle.select("tr").size();
+		//表格tr行数
+		//System.out.println(trNum);
+		for(int i = 1;i<=ssrNodeNum;i++) {
+			String serverName = tableEle.select("tr").get(trNum-ssrNodeNum+i-1).select("td").get(0).text();
+			//System.out.println(serverName);
 			//去除ssr://
 			urlString = SSRList.get(i-1);
 			urlString = urlString.substring(6);
 			//网页源代码的ssr连接有个感叹号,点进去又没有感叹号???有感叹号解码就会报错......
-			urlString = urlString.replaceAll("!", "");
+			//urlString = urlString.replaceAll("!", "");
 			//BASE64解码
 			urlString = base64Decode(urlString);
 			urlArray = urlString.split(":");
+	
 			//SSRNode节点
 			SSRNode ssrNode = new SSRNode();
-			//如果数组长度为11的IP地址是IPV6,长度为6的是IPV4
-			if(urlArray.length > 6) {
-				String ip = urlArray[0] 
-							+ ":" + urlArray[1] 
-							+ ":" +urlArray[2] 
-							+ ":" + urlArray[3]
-							+ ":" + urlArray[4]
-							+ ":" + urlArray[5];
+			//如果数组长度为6以上的IP地址是IPV6,长度为6的是IPV4
+			int len = urlArray.length;
+			if(len > 6) {
+				String ip = "";
+				for(int n= 0;n<len-5;n++) {
+					if(n==len-6) {
+						ip = urlArray[n]; 											
+					}else {
+						ip = urlArray[n]+":"; 																	
+					}
+				}
 				//备注
 				ssrNode.setRemarks(serverName);
 				//ip
 				ssrNode.setServer(ip);
 				//端口
-				ssrNode.setServer_port(Integer.valueOf(urlArray[6]));
+				ssrNode.setServer_port(Integer.valueOf(urlArray[len-5]));
 				//协议
-				ssrNode.setProtocol(urlArray[7]);
+				ssrNode.setProtocol(urlArray[len-4]);
 				//加密方式
-				ssrNode.setMethod(urlArray[8]);
+				ssrNode.setMethod(urlArray[len-3]);
 				//混淆
-				ssrNode.setObfs(urlArray[9]);
+				ssrNode.setObfs(urlArray[len-2]);
 				//密码
-				String pdStr = getStringByRegex("[a-zA-Z0-9]*", urlArray[10]).get(0);
+				String pdStr = getStringByRegex("[a-zA-Z0-9]*", urlArray[len-1]).get(0);
 				//对密码进行base64二次解码
 				pdStr = base64Decode(pdStr);
 				ssrNode.setPassword(pdStr);
 				//remarks
-				String remStr = getStringByRegex("(=){1}[a-zA-Z0-9-]*", urlArray[10]).get(0);
+				String remStr = getStringByRegex("(=){1}[a-zA-Z0-9-]*", urlArray[len-1]).get(0);
 				remStr = remStr.substring(1);
 				ssrNode.setRemarks_base64(remStr);
 				nodeList.add(ssrNode);
